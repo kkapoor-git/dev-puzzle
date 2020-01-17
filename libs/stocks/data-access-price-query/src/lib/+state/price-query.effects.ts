@@ -7,7 +7,6 @@ import * as fromPriceQueryStateActions  from './price-query.actions';
 import {StocksHttpDataService} from "../stocks-http-data.service";
 import { PriceQueryTransformer,} from "./price-query-transformer.util";
 import {PriceQueryPartialState} from "./price-query.entities";
-import {flatMap} from "rxjs/internal/operators";
 
 @Injectable()
 export class PriceQueryEffects {
@@ -18,7 +17,6 @@ export class PriceQueryEffects {
                 return this.stocksHttpDataService
                     .fetchStocksData(action.payload)
                     .pipe(
-                        flatMap(item => this.priceQueryTransformer.filterDataByDateRange(action.payload,item)),
                         map(resp => this.priceQueryTransformer.transformPriceQueryResponse(resp)),
                         switchMap(res => [
                             new fromPriceQueryStateActions.SetSelectedSymbol(action.payload.symbol),

@@ -1,35 +1,31 @@
-### Task 3
-Business requirement: As a user I want to choose custom dates
-so that I can view the trends within a specific period of time.
+### Task 4
+Technical requirement: the server `stocks-api` should be used as a proxy
+to make calls. Calls should be cached in memory to avoid querying for the
+same data. If a query is not in cache we should call-through to the API.
 
-### Solution:  developed on top of task 2
+### Solution: developed on top of task 3
 
-1) added a custom dates option in time period drop down
+1) created a new route /stocks in main.ts at stocks-api
 
-2) on custom dates selection from time period drop down, material date-picker option for From and To dated will be visible on UI .
+2) created a hapi lib 
 
-3) please note that I have used individual form valueChanges subscription instead of using one for complete form (as done in Task 2) , just wanted to avoid complexity and improve code readability but certainly it can be done with a single form values change subscription.
-
-4) In in stocks.component..ts I am calling onValueChanges from ngOnInit which is listening to individual field changes and eventually calling fetchQuote() method.
-
-5) I have to do below code because all fields are required and when user selects anything else then 'Custom dates' then we have to disable and reset from and to fields.
-                            this.stockPickerForm.controls.fromDate.reset();
-                            this.stockPickerForm.controls.toDate.reset();
-                            this.stockPickerForm.controls.fromDate.disable();
-                            this.stockPickerForm.controls.toDate.disable();
-
-6) I have added days in timePeriods[] (which is used to bind the dropdown) , reason is it will help in determining what time period to pass to api , I dont want to call api with time period max  
-
-7) when user selects from date, I am calculating its difference with today's date and then filtering the appropriate timeperiod from timeperiods array , which would ensure max call is avoided.
-
-8) for example assume today is January 16 and user selects January 10 then i calculate the days in difference i.e 6 days which means it is under 30 days data , so imitate a  1m call and filter out data based on from date and to date.
-
-9) from stocksHttpDataService when we get response back in effects , I have used a flatMap which calls filterDataByDateRange and filters data if from and to date is present else returns data as is.
-
-10) below validation rules are implemented 
+    a) data-access-config - lib to fetch config values.
     
-    a) in both From and To fields i have added [max]="this.currentDate" which means that date selection is not allowed after today's date.
-   
-    b) in To field have added [min] = "this.minDate" , (minDate is from date selected) which ensures that "to" cannot be before "from".
+    b) stocks-api - lib to fetch stocks data , broken down further 
     
-    c) if from date is greater than today's date then I am changing the 'from' date i.e. ensuring both dates are same i.e. both will have to date. 
+        i) Cache Client - a cache wrapper class having two methods i.e. get and set.I am here using Node-cache which is simple and fast.
+        
+        ii) Stocks Service - this service responsibility is 
+            - create cache key based on inputs.
+            - check that request key exists in cache or not
+            - If cache key is not found it initiates a fetch call and then sets data in cache
+            - once it recives data it checks if date ranges are passed , it filters the data and then sets in cache before returning
+        
+        iii) Stocks Data Access 
+            - first loads the config and then rads the api endpoint and creates one based on inputs.
+            - it then initiates a http call to fetch stocks , I am here using Axios to make Http call.   
+        
+### Angular changes 
+ 1) modified StocksHttpDataService to call hapi endpoint /stocks to fetch data.
+ 2) added a config entry for new proxy  
+ 3) removed filtering Logic from angular and moved to proxy

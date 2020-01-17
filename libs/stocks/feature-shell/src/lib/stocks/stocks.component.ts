@@ -98,7 +98,6 @@ export class StocksComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         takeUntil(this.destroy$))
         .subscribe((toDateValue) => {
-          console.log('I am to date', toDateValue);
           if (!isNullOrUndefined(toDateValue)) {
             this.toDate = formatDate(toDateValue, 'yyyy-MM-dd', 'en-us');
             this.fetchQuote();

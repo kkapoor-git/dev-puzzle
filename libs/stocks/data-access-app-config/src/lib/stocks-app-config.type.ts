@@ -1,5 +1,6 @@
 export type StocksAppConfig = {
-  production: boolean;
-  apiKey: string;
-  apiURL: string;
+  production?: boolean;
+  apiKey?: string;
+  apiURL?: string;
+  hapiApiURL?: string;
 };

@@ -3,10 +3,7 @@ import {parse} from 'date-fns';
 import {
     IPriceQuery,
     IPriceQueryError,
-    IPriceQueryRequest,
-    IPriceQueryResponse
 } from "../interfaces/price-query-data.interface";
-import {isNullOrUndefined} from "util";
 import {Injectable} from "@angular/core";
 
 @Injectable()
@@ -43,18 +40,5 @@ export class PriceQueryTransformer {
             symbol: symbol,
             timePeriod: timePeriod
         };
-    }
-
-    public filterDataByDateRange(request: IPriceQueryRequest, response: any): IPriceQueryResponse[] {
-        const respData: IPriceQueryResponse[] = [];
-        if (!isNullOrUndefined(request.fromDate) && !isNullOrUndefined(request.toDate)) {
-            respData.push(response.filter(s => {
-                return new Date(s.date) >= new Date(request.fromDate) && new Date(s.date) <= new Date(request.toDate)
-            }));
-        } else {
-            respData.push(response);
-        }
-
-        return respData;
     }
 }
