@@ -1,47 +1,43 @@
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
-import {
-  StocksAppConfig,
-  StocksAppConfigToken
-} from '@coding-challenge/stocks/data-access-app-config';
+import { Injectable } from '@angular/core';
 import { Effect } from '@ngrx/effects';
 import { DataPersistence } from '@nrwl/nx';
-import { map } from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
+import * as fromPriceQueryStateActions  from './price-query.actions';
+import {StocksHttpDataService} from "../stocks-http-data.service";
 import {
-  FetchPriceQuery,
-  PriceQueryActionTypes,
-  PriceQueryFetched,
-  PriceQueryFetchError
-} from './price-query.actions';
-import { PriceQueryPartialState } from './price-query.reducer';
-import { PriceQueryResponse } from './price-query.type';
+    PriceQueryTransformer
+} from "./price-query-transformer.util";
+import {PriceQueryPartialState} from "./price-query.entities";
 
 @Injectable()
 export class PriceQueryEffects {
-  @Effect() loadPriceQuery$ = this.dataPersistence.fetch(
-    PriceQueryActionTypes.FetchPriceQuery,
-    {
-      run: (action: FetchPriceQuery, state: PriceQueryPartialState) => {
-        return this.httpClient
-          .get(
-            `${this.env.apiURL}/beta/stock/${action.symbol}/chart/${
-              action.period
-            }?token=${this.env.apiKey}`
-          )
-          .pipe(
-            map(resp => new PriceQueryFetched(resp as PriceQueryResponse[]))
-          );
-      },
+    @Effect() loadPriceQuery$ = this.dataPersistence.fetch(
+        fromPriceQueryStateActions.PriceQueryActionTypes.FETCH_PRICE_QUERY,
+        {
+            run: (action:fromPriceQueryStateActions.FetchPriceQuery) => {
+                return this.stocksHttpDataService
+                    .fetchStocksData(action.payload)
+                    .pipe(
+                        map(resp => this.priceQueryTransformer.transformPriceQueryResponse(resp)),
+                        switchMap(res => [
+                            new fromPriceQueryStateActions.SetSelectedSymbol(action.payload.symbol),
+                            new fromPriceQueryStateActions
+                                .FetchPriceQuerySuccess(res)
+                        ])
+                    );
+            },
 
-      onError: (action: FetchPriceQuery, error) => {
-        return new PriceQueryFetchError(error);
-      }
-    }
-  );
+            onError: (action: fromPriceQueryStateActions.FetchPriceQuery, error) => {
+                return new fromPriceQueryStateActions.PriceQueryFetchError(this.priceQueryTransformer.transformErrorResponse(error,action.payload.symbol,action.payload.period));
+            }
+        }
+    );
 
-  constructor(
-    @Inject(StocksAppConfigToken) private env: StocksAppConfig,
-    private httpClient: HttpClient,
-    private dataPersistence: DataPersistence<PriceQueryPartialState>
-  ) {}
+    constructor(
+        private httpClient: HttpClient,
+        private dataPersistence: DataPersistence<PriceQueryPartialState>,
+        private stocksHttpDataService: StocksHttpDataService,
+        private priceQueryTransformer: PriceQueryTransformer
+    ) {}
 }

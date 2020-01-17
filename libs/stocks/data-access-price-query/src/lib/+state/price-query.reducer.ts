@@ -1,49 +1,28 @@
-import { PriceQueryAction, PriceQueryActionTypes } from './price-query.actions';
-import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
-import { PriceQuery } from './price-query.type';
-import { transformPriceQueryResponse } from './price-query-transformer.util';
+import * as fromPriceQueryStateActions  from './price-query.actions';
+import {IPriceQuery} from "../interfaces/price-query-data.interface";
+import {initialState, IPriceQueryState, priceQueryAdapter} from "./price-query.entities";
 
-export const PRICEQUERY_FEATURE_KEY = 'priceQuery';
-
-export interface PriceQueryState extends EntityState<PriceQuery> {
-  selectedSymbol: string;
-}
-
-export function sortByDateNumeric(a: PriceQuery, b: PriceQuery): number {
-  return a.dateNumeric - b.dateNumeric;
-}
-
-export const priceQueryAdapter: EntityAdapter<PriceQuery> = createEntityAdapter<
-  PriceQuery
->({
-  selectId: (priceQuery: PriceQuery) => priceQuery.dateNumeric,
-  sortComparer: sortByDateNumeric
-});
-
-export interface PriceQueryPartialState {
-  readonly [PRICEQUERY_FEATURE_KEY]: PriceQueryState;
-}
-
-export const initialState: PriceQueryState = priceQueryAdapter.getInitialState({
-  selectedSymbol: ''
-});
 
 export function priceQueryReducer(
-  state: PriceQueryState = initialState,
-  action: PriceQueryAction
-): PriceQueryState {
+    state: IPriceQueryState = initialState,
+    action: fromPriceQueryStateActions.PriceQueryActionUnion
+): IPriceQueryState {
   switch (action.type) {
-    case PriceQueryActionTypes.PriceQueryFetched: {
-      return priceQueryAdapter.addAll(
-        transformPriceQueryResponse(action.queryResults),
-        state
-      );
+
+    case fromPriceQueryStateActions.PriceQueryActionTypes.FETCH_PRICE_QUERY_SUCCESS : {
+      return priceQueryAdapter.addAll(<IPriceQuery[]>action.payload, {
+        ...state,
+        isLoaded: true});
+
     }
-    case PriceQueryActionTypes.SelectSymbol: {
+    case fromPriceQueryStateActions.PriceQueryActionTypes.SET_SELECTED_SYMBOL: {
       return {
         ...state,
-        selectedSymbol: action.symbol
+        selectedSymbol: action.payload.toString()
       };
+    }
+    case fromPriceQueryStateActions.PriceQueryActionTypes.FETCH_PRICE_QUERY_ERROR : {
+      return priceQueryAdapter.removeAll(state);
     }
   }
   return state;
