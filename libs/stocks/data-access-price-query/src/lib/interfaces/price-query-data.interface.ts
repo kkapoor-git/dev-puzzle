@@ -1,6 +1,8 @@
 export interface IPriceQueryRequest{
-  symbol: string;
-  period: string;
+  symbol?: string;
+  period?: string;
+  fromDate?: string;
+  toDate?: string
 }
 export interface IPriceQueryResponse {
   date: string;
@@ -39,5 +41,3 @@ export interface IPriceQueryError {
   symbol: string;
   timePeriod: string
 }
-
-

@@ -19,11 +19,13 @@ export class PriceQueryFacade {
 
   constructor(private store: Store<PriceQueryPartialState>) {}
 
-  fetchQuote(symbol: string, period: string) {
+  fetchQuote(symbol: string , period: string , fromDate: string , toDate: string) {
 
     const queryRequest: IPriceQueryRequest = {
+      symbol: symbol,
       period: period,
-      symbol: symbol
+      fromDate: fromDate,
+      toDate: toDate
     };
 
     this.store.dispatch(new fromPriceQueryStateActions.FetchPriceQuery(queryRequest));
