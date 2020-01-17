@@ -1,17 +1,19 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {PriceQueryFacade} from '@coding-challenge/stocks/data-access-price-query';
-import {Observable} from "rxjs";
+import {Observable, Subject} from "rxjs";
+import {debounceTime, distinctUntilChanged, takeUntil} from "rxjs/operators";
 
 @Component({
   selector: 'coding-challenge-stocks',
   templateUrl: './stocks.component.html',
   styleUrls: ['./stocks.component.css']
 })
-export class StocksComponent implements OnInit {
+export class StocksComponent implements OnInit, OnDestroy {
   stockPickerForm: FormGroup;
 
-  private quotes$:Observable<any> = this.priceQuery.priceQueries$;
+  private destroy$ = new Subject();
+  private quotes$: Observable<any> = this.priceQuery.priceQueries$;
 
   private timePeriods: any = [
     {viewValue: 'All available data', value: 'max'},
@@ -31,12 +33,28 @@ export class StocksComponent implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.onValueChanges();
+  }
 
-  fetchQuote() {
+  private onValueChanges(): void {
+    this.stockPickerForm.valueChanges.pipe(
+        debounceTime(1000),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.fetchQuote();
+        });
+  }
+
+  private fetchQuote(): void {
     if (this.stockPickerForm.valid) {
       const {symbol, period} = this.stockPickerForm.value;
       this.priceQuery.fetchQuote(symbol, period);
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
   }
 }
