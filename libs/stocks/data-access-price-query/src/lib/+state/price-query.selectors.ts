@@ -1,22 +1,14 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import {
-  priceQueryAdapter,
-  PriceQueryState,
-  PRICEQUERY_FEATURE_KEY
-} from './price-query.reducer';
 
-const getPriceQueryState = createFeatureSelector<PriceQueryState>(
-  PRICEQUERY_FEATURE_KEY
-);
+import {IPriceQueryState, PRICEQUERY_FEATURE_KEY, priceQueryAdapter} from "./price-query.entities";
 
-export const getSelectedSymbol = createSelector(
-  getPriceQueryState,
-  (state: PriceQueryState) => state.selectedSymbol
+const getPriceQueryState = createFeatureSelector<IPriceQueryState>(
+    PRICEQUERY_FEATURE_KEY
 );
 
 const { selectAll } = priceQueryAdapter.getSelectors();
 
 export const getAllPriceQueries = createSelector(
-  getPriceQueryState,
-  selectAll
+    getPriceQueryState,
+    selectAll
 );

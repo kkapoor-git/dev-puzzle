@@ -1,9 +1,15 @@
-<google-chart
-  *ngIf="data"
-  [title]="chart.title"
-  [type]="chart.type"
-  [data]="chartData"
-  [columnNames]="chart.columnNames"
-  [options]="chart.options"
->
-</google-chart>
+<div *ngIf="(this.data$ | async) as symbolData ">
+    <google-chart
+            *ngIf="symbolData.length > 0"
+            [title]="chart.title"
+            [type]="chart.type"
+            [data]="symbolData"
+            [columnNames]="chart.columnNames"
+            [options]="chart.options"
+    >
+    </google-chart>
+
+    <div *ngIf="symbolData.length == 0">
+        No data found for the provided inputs!
+    </div>
+</div>
