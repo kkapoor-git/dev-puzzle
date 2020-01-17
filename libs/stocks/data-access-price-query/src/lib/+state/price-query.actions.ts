@@ -1,42 +1,39 @@
 import { Action } from '@ngrx/store';
-import { PriceQueryResponse } from './price-query.type';
+import {IPriceQueryRequest, IPriceQuery, IPriceQueryError} from "../interfaces/price-query-data.interface";
+
+export interface IPriceQueryDataActions extends Action {
+  type: string;
+  payload?: IPriceQuery | IPriceQueryError | any
+}
 
 export enum PriceQueryActionTypes {
-  SelectSymbol = 'priceQuery.selectSymbol',
-  FetchPriceQuery = 'priceQuery.fetch',
-  PriceQueryFetched = 'priceQuery.fetched',
-  PriceQueryFetchError = 'priceQuery.error'
+  FETCH_PRICE_QUERY = '[PriceQuery] Get Query Data',
+  FETCH_PRICE_QUERY_SUCCESS = '[PriceQuery] Get Query Data Success',
+  FETCH_PRICE_QUERY_ERROR = '[PriceQuery] Get Query Data Error',
+  SET_SELECTED_SYMBOL = '[PriceQuery] Set Selected Symbol',
 }
 
-export class FetchPriceQuery implements Action {
-  readonly type = PriceQueryActionTypes.FetchPriceQuery;
-  constructor(public symbol: string, public period: string) {}
+export class FetchPriceQuery implements IPriceQueryDataActions {
+  public readonly type: PriceQueryActionTypes = PriceQueryActionTypes.FETCH_PRICE_QUERY;
+  constructor(public payload: IPriceQueryRequest) {}
 }
 
-export class PriceQueryFetchError implements Action {
-  readonly type = PriceQueryActionTypes.PriceQueryFetchError;
-  constructor(public error: any) {}
+export class FetchPriceQuerySuccess implements IPriceQueryDataActions {
+  public readonly type: PriceQueryActionTypes = PriceQueryActionTypes.FETCH_PRICE_QUERY_SUCCESS;
+  constructor(public payload: IPriceQuery[]) {}
 }
 
-export class PriceQueryFetched implements Action {
-  readonly type = PriceQueryActionTypes.PriceQueryFetched;
-  constructor(public queryResults: PriceQueryResponse[]) {}
+export class PriceQueryFetchError implements IPriceQueryDataActions {
+  public readonly type: PriceQueryActionTypes = PriceQueryActionTypes.FETCH_PRICE_QUERY_ERROR;
+  constructor(public payload: IPriceQueryError) {}
 }
 
-export class SelectSymbol implements Action {
-  readonly type = PriceQueryActionTypes.SelectSymbol;
-  constructor(public symbol: string) {}
+export class SetSelectedSymbol implements IPriceQueryDataActions {
+  readonly type = PriceQueryActionTypes.SET_SELECTED_SYMBOL;
+  constructor(public payload: string) {}
 }
 
-export type PriceQueryAction =
-  | FetchPriceQuery
-  | PriceQueryFetched
-  | PriceQueryFetchError
-  | SelectSymbol;
-
-export const fromPriceQueryActions = {
-  FetchPriceQuery,
-  PriceQueryFetched,
-  PriceQueryFetchError,
-  SelectSymbol
-};
+export type PriceQueryActionUnion = FetchPriceQuery
+    | FetchPriceQuerySuccess
+    | PriceQueryFetchError
+    | SetSelectedSymbol;
