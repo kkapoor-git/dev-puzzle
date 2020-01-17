@@ -1,86 +1,35 @@
-# T-Mobile Coding Challenge
-
-### Important! Read this First !
-
-Do **not** submit a pull request to this repository.  You PR wil be rejected and your submission ignored.
-To be safe **do not Fork** this repository, if you do you will be tempted to create a PR.
-
-To _properly_ submit a coding challenge you must:
-
-1. Create a blank (empty) repo in the public git service of your choice ( github, gitlab, bitbucket )
-2. Clone this repo to your local workstation
-3. Reset the remote origin to point to your newly created empty repo
-4. Push the master branch up to your repo
-
-5. make necessary changes
-6. push changes to your origin
-7. send address of your copy to t-mobile.
-
-We will review your copy online before and during your interview.
-
-
-# Stocks coding challenge
-
-## How to run the application
-
-There are two apps: `stocks` and `stocks-api`.
-
-- `stocks` is the front-end. It uses Angular 7 and Material. You can run this using `yarn serve:stocks`
-- `stocks-api` uses Hapi and has a very minimal implementation. You can start the API server with `yarn serve:stocks-api`
-
-A proxy has been set up in `stocks` to proxy calls to `locahost:3333` which is the port that the Hapi server listens on.
-
-> You need to register for a token here: https://iexcloud.io/cloud-login#/register/ Use this token in the `environment.ts` file for the `stocks` app.
-
-> The charting library is the Google charts API: https://developers.google.com/chart/
-
-## Problem statement
-
-[Original problem statement](https://github.com/tmobile/developer-kata/blob/master/puzzles/web-api/stock-broker.md)
-
-### Task 1
-
-Please provide a short code review of the base `master` branch:
-
-1. What is done well?
-2. What would you change?
-3. Are there any code smells or problematic implementations?
-
-> Make a PR to fix at least one of the issues that you identify
-
-### Task 2
-
-```
-Business requirement: As a user I should be able to type into
-the symbol field and make a valid time-frame selection so that
-the graph is refreshed automatically without needing to click a button.
-```
-
-_**Make a PR from the branch `feat_stock_typeahead` to `master` and provide a code review on this PR**_
-
-> Add comments to the PR. Focus on all items that you can see - this is a hypothetical example but let's treat it as a critical application. Then present these changes as another commit on the PR.
-
 ### Task 3
-
-```
 Business requirement: As a user I want to choose custom dates
 so that I can view the trends within a specific period of time.
-```
 
-_**Implement this feature and make a PR from the branch `feat_custom_dates` to `master`.**_
+### Solution:  developed on top of task 2
 
-> Use the material date-picker component
+1) added a custom dates option in time period drop down
 
-> We need two date-pickers: "from" and "to". The date-pickers should not allow selection of dates after the current day. "to" cannot be before "from" (selecting an invalid range should make both dates the same value)
+2) on custom dates selection from time period drop down, material date-picker option for From and To dated will be visible on UI .
 
-### Task 4
+3) please note that I have used individual form valueChanges subscription instead of using one for complete form (as done in Task 2) , just wanted to avoid complexity and improve code readability but certainly it can be done with a single form values change subscription.
 
-```
-Technical requirement: the server `stocks-api` should be used as a proxy
-to make calls. Calls should be cached in memory to avoid querying for the
-same data. If a query is not in cache we should call-through to the API.
-```
+4) In in stocks.component..ts I am calling onValueChanges from ngOnInit which is listening to individual field changes and eventually calling fetchQuote() method.
 
-_**Implement the solution and make a PR from the branch `feat_proxy_server` to `master`**_
+5) I have to do below code because all fields are required and when user selects anything else then 'Custom dates' then we have to disable and reset from and to fields.
+                            this.stockPickerForm.controls.fromDate.reset();
+                            this.stockPickerForm.controls.toDate.reset();
+                            this.stockPickerForm.controls.fromDate.disable();
+                            this.stockPickerForm.controls.toDate.disable();
 
-> It is important to get the implementation working before trying to organize and clean it up.
+6) I have added days in timePeriods[] (which is used to bind the dropdown) , reason is it will help in determining what time period to pass to api , I dont want to call api with time period max  
+
+7) when user selects from date, I am calculating its difference with today's date and then filtering the appropriate timeperiod from timeperiods array , which would ensure max call is avoided.
+
+8) for example assume today is January 16 and user selects January 10 then i calculate the days in difference i.e 6 days which means it is under 30 days data , so imitate a  1m call and filter out data based on from date and to date.
+
+9) from stocksHttpDataService when we get response back in effects , I have used a flatMap which calls filterDataByDateRange and filters data if from and to date is present else returns data as is.
+
+10) below validation rules are implemented 
+    
+    a) in both From and To fields i have added [max]="this.currentDate" which means that date selection is not allowed after today's date.
+   
+    b) in To field have added [min] = "this.minDate" , (minDate is from date selected) which ensures that "to" cannot be before "from".
+    
+    c) if from date is greater than today's date then I am changing the 'from' date i.e. ensuring both dates are same i.e. both will have to date. 

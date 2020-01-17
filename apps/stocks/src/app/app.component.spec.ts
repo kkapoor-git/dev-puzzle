@@ -1,10 +1,17 @@
 import { TestBed, async } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { NO_ERRORS_SCHEMA} from "@angular/core";
+import {RouterTestingModule} from "@angular/router/testing";
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [AppComponent]
+      schemas: [NO_ERRORS_SCHEMA],
+      declarations: [AppComponent],
+      imports: [
+        RouterTestingModule,
+      ],
+      providers: []
     }).compileComponents();
   }));
 
@@ -25,7 +32,7 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     const compiled = fixture.debugElement.nativeElement;
     expect(compiled.querySelector('h1').textContent).toContain(
-      'Welcome to stocks!'
+        'Welcome to stocks!'
     );
   });
 });
